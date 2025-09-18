@@ -4,7 +4,6 @@ import { HeroBackground } from "@/components/ui/hero-background";
 import { Navigation } from "@/components/ui/navigation";
 import { Link } from "react-router-dom";
 import { Shield, Lock, Globe, Zap, CheckCircle, ArrowRight } from "lucide-react";
-import heroImage from "@/assets/hero-blockchain.jpg";
 import securityIcon from "@/assets/security-icon.jpg";
 import blockchainIcon from "@/assets/blockchain-icon.jpg";
 import storageIcon from "@/assets/storage-icon.jpg";
@@ -15,54 +14,44 @@ const Home = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <HeroBackground className="min-h-screen flex items-center">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8 animate-fade-in-up">
-              <div className="space-y-4">
-                <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-                  Secure File Transfer 
-                  <span className="gradient-text block">
-                    On Blockchain
-                  </span>
-                </h1>
-                <p className="text-xl text-muted-foreground leading-relaxed">
-                  Decentralized platform for secure file sharing with tamper-evident hashing, 
-                  verifiable provenance, and auditable access control powered by blockchain technology.
-                </p>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="glow hover-lift" asChild>
-                  <Link to="/dashboard">
-                    Start Transfer <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-                <Button variant="outline" size="lg" className="hover-lift" asChild>
-                  <Link to="/features">Learn More</Link>
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-8 pt-4">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-success" />
-                  <span className="text-sm text-muted-foreground">End-to-End Encrypted</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-success" />
-                  <span className="text-sm text-muted-foreground">Blockchain Verified</span>
-                </div>
-              </div>
+      <HeroBackground className="min-h-screen flex items-center justify-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="space-y-8 animate-fade-in-up">
+            <div className="space-y-6">
+              <h1 className="text-5xl md:text-7xl font-bold leading-tight">
+                Secure Transfer.{" "}
+                <span className="gradient-text">
+                  Blockchain Verified.
+                </span>{" "}
+                <span className="gradient-text">
+                  That easy.
+                </span>
+              </h1>
+              <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
+                Hash Transfer enables secure file sharing with tamper-evident hashing, 
+                verifiable provenance, and auditable access control, all powered by blockchain technology.
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+              <Button size="lg" className="glow hover-lift text-lg px-8" asChild>
+                <Link to="/dashboard">
+                  Start Transfer
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" className="hover-lift text-lg px-8" asChild>
+                <Link to="/features">Book a Demo</Link>
+              </Button>
             </div>
 
-            <div className="relative animate-slide-in-right">
-              <div className="relative">
-                <img 
-                  src={heroImage} 
-                  alt="Blockchain Network Visualization"
-                  className="rounded-2xl shadow-2xl hover-lift"
-                />
-                <div className="absolute inset-0 bg-gradient-hero rounded-2xl" />
+            <div className="flex items-center justify-center gap-8 pt-8">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-success" />
+                <span className="text-sm text-muted-foreground">End-to-End Encrypted</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-success" />
+                <span className="text-sm text-muted-foreground">Blockchain Verified</span>
               </div>
             </div>
           </div>

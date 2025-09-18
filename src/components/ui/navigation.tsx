@@ -2,7 +2,13 @@ import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface NavigationProps {
   className?: string;
@@ -13,8 +19,26 @@ const Navigation = ({ className }: NavigationProps) => {
   const location = useLocation();
 
   const navItems = [
-    { label: "Features", href: "/features" },
-    { label: "Pricing", href: "/pricing" },
+    { 
+      label: "Features", 
+      href: "/features",
+      dropdown: [
+        { label: "Security Features", href: "/features#security" },
+        { label: "Blockchain Integration", href: "/features#blockchain" },
+        { label: "Compliance", href: "/features#compliance" },
+        { label: "API Documentation", href: "/features#api" }
+      ]
+    },
+    { 
+      label: "Pricing", 
+      href: "/pricing",
+      dropdown: [
+        { label: "Starter Plan", href: "/pricing#starter" },
+        { label: "Professional", href: "/pricing#professional" },
+        { label: "Enterprise", href: "/pricing#enterprise" },
+        { label: "Volume Discounts", href: "/pricing#volume" }
+      ]
+    },
     { label: "Company", href: "/company" },
     { label: "Contact", href: "/contact" },
   ];
@@ -39,18 +63,36 @@ const Navigation = ({ className }: NavigationProps) => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary",
-                  isActive(item.href) 
-                    ? "text-primary" 
-                    : "text-muted-foreground"
-                )}
-              >
-                {item.label}
-              </Link>
+              item.dropdown ? (
+                <DropdownMenu key={item.href}>
+                  <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary text-muted-foreground">
+                    {item.label}
+                    <ChevronDown className="h-3 w-3" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="glass backdrop-blur-xl border-border/50">
+                    {item.dropdown.map((dropdownItem) => (
+                      <DropdownMenuItem key={dropdownItem.href} asChild>
+                        <Link to={dropdownItem.href} className="cursor-pointer">
+                          {dropdownItem.label}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-primary",
+                    isActive(item.href) 
+                      ? "text-primary" 
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              )
             ))}
           </div>
 

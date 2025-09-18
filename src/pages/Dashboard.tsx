@@ -29,6 +29,9 @@ import { useToast } from "@/hooks/use-toast";
 const Dashboard = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [isHashing, setIsHashing] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileHash, setFileHash] = useState("");
   const { toast } = useToast();
 
   const recentTransfers = [
@@ -88,24 +91,55 @@ const Dashboard = () => {
     }
   ];
 
-  const handleFileUpload = () => {
+  const handleFileSelect = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '*/*';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        setSelectedFile(file);
+        handleFileUpload(file);
+      }
+    };
+    input.click();
+  };
+
+  const generateHash = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  };
+
+  const handleFileUpload = async (file: File) => {
     setIsUploading(true);
     setUploadProgress(0);
     
-    const interval = setInterval(() => {
+    // Simulate upload progress
+    const uploadInterval = setInterval(() => {
       setUploadProgress((prev) => {
         if (prev >= 100) {
-          clearInterval(interval);
+          clearInterval(uploadInterval);
           setIsUploading(false);
-          toast({
-            title: "File uploaded successfully!",
-            description: "Your file has been encrypted and is ready for transfer."
+          setIsHashing(true);
+          
+          // Start hashing process
+          generateHash(file).then(hash => {
+            setFileHash(hash);
+            setTimeout(() => {
+              setIsHashing(false);
+              toast({
+                title: "File processed successfully!",
+                description: `File "${file.name}" has been encrypted and hashed. Ready for secure transfer.`
+              });
+            }, 1500);
           });
           return 100;
         }
         return prev + 10;
       });
-    }, 200);
+    }, 150);
   };
 
   const copyToClipboard = (text: string) => {
@@ -191,14 +225,29 @@ const Dashboard = () => {
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {/* File Upload Area */}
-                      <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
+                      <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer" onClick={handleFileSelect}>
                         <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                         <h3 className="text-lg font-medium mb-2">Drop files here to upload</h3>
                         <p className="text-muted-foreground mb-4">or click to browse files</p>
-                        <Button variant="outline" onClick={handleFileUpload}>
+                        <Button variant="outline" onClick={handleFileSelect}>
                           Choose Files
                         </Button>
                       </div>
+
+                      {/* Selected File Display */}
+                      {selectedFile && (
+                        <div className="p-4 rounded-lg bg-muted/20 border">
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-5 w-5 text-primary" />
+                            <div className="flex-1">
+                              <p className="font-medium">{selectedFile.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Upload Progress */}
                       {isUploading && (
@@ -208,6 +257,35 @@ const Dashboard = () => {
                             <span>{uploadProgress}%</span>
                           </div>
                           <Progress value={uploadProgress} className="h-2" />
+                        </div>
+                      )}
+
+                      {/* Hashing Progress */}
+                      {isHashing && (
+                        <div className="space-y-3 p-4 rounded-lg bg-primary/5 border border-primary/20">
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                            <span className="text-sm font-medium">Generating cryptographic hash...</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Creating SHA-256 hash for blockchain verification
+                          </p>
+                        </div>
+                      )}
+
+                      {/* File Hash Display */}
+                      {fileHash && !isHashing && (
+                        <div className="space-y-3 p-4 rounded-lg bg-success/5 border border-success/20">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-success" />
+                            <span className="text-sm font-medium text-success">File hash generated</span>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground">SHA-256 Hash:</p>
+                            <code className="text-xs font-mono bg-muted p-2 rounded block break-all">
+                              {fileHash}
+                            </code>
+                          </div>
                         </div>
                       )}
 
