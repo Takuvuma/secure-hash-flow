@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/ui/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,9 +22,17 @@ import {
   MoreHorizontal,
   Lock,
   Globe,
-  Users
+  Users,
+  LogOut
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const transferSchema = z.object({
+  recipientEmail: z.string().email("Invalid email address").max(255),
+  message: z.string().max(1000).optional()
+});
 
 const Dashboard = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -32,7 +40,24 @@ const Dashboard = () => {
   const [isHashing, setIsHashing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileHash, setFileHash] = useState("");
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
+  const [message, setMessage] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Get current user email
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) {
+        setUserEmail(user.email);
+      }
+    });
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   const recentTransfers = [
     {
@@ -238,6 +263,95 @@ const Dashboard = () => {
     }, 150);
   };
 
+  const handleSendTransfer = async () => {
+    try {
+      // Validate inputs
+      const validated = transferSchema.parse({
+        recipientEmail,
+        message: message || undefined
+      });
+
+      if (!selectedFile || !fileHash) {
+        toast({
+          title: "Missing file",
+          description: "Please select a file first",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setIsUploading(true);
+
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Upload file to storage
+      const filePath = `${user.id}/${Date.now()}-${selectedFile.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('secure-transfers')
+        .upload(filePath, selectedFile);
+
+      if (uploadError) throw uploadError;
+
+      // Save transfer record to database
+      const { error: dbError } = await supabase
+        .from('transfers')
+        .insert({
+          user_id: user.id,
+          recipient_email: validated.recipientEmail,
+          file_name: selectedFile.name,
+          file_size: selectedFile.size,
+          file_path: filePath,
+          file_hash: fileHash,
+          message: validated.message,
+          expiry_date: expiryDate || null,
+          status: 'pending'
+        });
+
+      if (dbError) throw dbError;
+
+      // Send email notification
+      const { error: emailError } = await supabase.functions.invoke('send-transfer-email', {
+        body: {
+          recipientEmail: validated.recipientEmail,
+          fileName: selectedFile.name,
+          fileSize: `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
+          message: validated.message,
+          senderEmail: userEmail
+        }
+      });
+
+      if (emailError) {
+        console.error("Email error:", emailError);
+        // Don't fail the transfer if email fails
+      }
+
+      toast({
+        title: "Transfer sent successfully!",
+        description: `File sent to ${validated.recipientEmail}`
+      });
+
+      // Reset form
+      setSelectedFile(null);
+      setFileHash("");
+      setRecipientEmail("");
+      setExpiryDate("");
+      setMessage("");
+      setUploadProgress(0);
+
+    } catch (error: any) {
+      console.error("Transfer error:", error);
+      toast({
+        title: "Transfer failed",
+        description: error.message || "Failed to send transfer",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({
@@ -274,9 +388,9 @@ const Dashboard = () => {
                   Secure file transfer dashboard
                 </p>
               </div>
-              <Button size="lg" className="glow">
-                <Upload className="mr-2 h-5 w-5" />
-                New Transfer
+              <Button size="lg" variant="outline" onClick={handleSignOut}>
+                <LogOut className="mr-2 h-5 w-5" />
+                Sign Out
               </Button>
             </div>
           </div>
@@ -389,11 +503,23 @@ const Dashboard = () => {
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="recipient">Recipient Email</Label>
-                          <Input id="recipient" placeholder="recipient@example.com" />
+                          <Input 
+                            id="recipient" 
+                            type="email"
+                            placeholder="recipient@example.com"
+                            value={recipientEmail}
+                            onChange={(e) => setRecipientEmail(e.target.value)}
+                            maxLength={255}
+                          />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="expiry">Expiry Date</Label>
-                          <Input id="expiry" type="date" />
+                          <Input 
+                            id="expiry" 
+                            type="date"
+                            value={expiryDate}
+                            onChange={(e) => setExpiryDate(e.target.value)}
+                          />
                         </div>
                       </div>
 
@@ -403,6 +529,9 @@ const Dashboard = () => {
                           id="message" 
                           placeholder="Add a message for the recipient..."
                           className="min-h-[80px]"
+                          value={message}
+                          onChange={(e) => setMessage(e.target.value)}
+                          maxLength={1000}
                         />
                       </div>
 
@@ -432,7 +561,12 @@ const Dashboard = () => {
                         </div>
                       </div>
 
-                      <Button size="lg" className="w-full glow" disabled={isUploading}>
+                      <Button 
+                        size="lg" 
+                        className="w-full glow" 
+                        disabled={isUploading || !selectedFile || !fileHash}
+                        onClick={handleSendTransfer}
+                      >
                         <Send className="mr-2 h-5 w-5" />
                         Send Secure Transfer
                       </Button>
