@@ -91,6 +91,84 @@ const Dashboard = () => {
     }
   ];
 
+  // File validation configuration
+  const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+  const ALLOWED_EXTENSIONS = [
+    'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+    'txt', 'csv', 'zip', 'rar', '7z',
+    'jpg', 'jpeg', 'png', 'gif', 'webp',
+    'mp4', 'mov', 'avi', 'mp3', 'wav'
+  ];
+  const SUSPICIOUS_PATTERNS = ['.exe', '.bat', '.cmd', '.com', '.scr', '.vbs', '.js'];
+
+  const validateFile = (file: File): { valid: boolean; error?: string } => {
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      return {
+        valid: false,
+        error: `File size exceeds maximum limit of ${MAX_FILE_SIZE / 1024 / 1024}MB`
+      };
+    }
+
+    // Check for empty files
+    if (file.size === 0) {
+      return {
+        valid: false,
+        error: 'Cannot upload empty files'
+      };
+    }
+
+    // Check file extension
+    const fileName = file.name.toLowerCase();
+    const extension = fileName.split('.').pop() || '';
+    
+    if (!ALLOWED_EXTENSIONS.includes(extension)) {
+      return {
+        valid: false,
+        error: `File type .${extension} is not allowed. Allowed types: ${ALLOWED_EXTENSIONS.join(', ')}`
+      };
+    }
+
+    // Check for suspicious patterns in filename
+    for (const pattern of SUSPICIOUS_PATTERNS) {
+      if (fileName.includes(pattern)) {
+        return {
+          valid: false,
+          error: 'File contains suspicious patterns and cannot be uploaded'
+        };
+      }
+    }
+
+    // Basic MIME type check
+    const allowedMimeTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument',
+      'application/vnd.ms-excel',
+      'application/vnd.ms-powerpoint',
+      'text/',
+      'image/',
+      'video/',
+      'audio/',
+      'application/zip',
+      'application/x-rar',
+      'application/x-7z-compressed'
+    ];
+
+    const mimeValid = allowedMimeTypes.some(allowed => 
+      file.type.startsWith(allowed)
+    );
+
+    if (file.type && !mimeValid) {
+      return {
+        valid: false,
+        error: `Invalid file type: ${file.type}`
+      };
+    }
+
+    return { valid: true };
+  };
+
   const handleFileSelect = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -98,6 +176,24 @@ const Dashboard = () => {
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
+        // Validate file before processing
+        const validation = validateFile(file);
+        
+        if (!validation.valid) {
+          toast({
+            title: "File Validation Failed",
+            description: validation.error,
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // File passed validation
+        toast({
+          title: "File Validated",
+          description: `${file.name} passed security checks`,
+        });
+        
         setSelectedFile(file);
         handleFileUpload(file);
       }
