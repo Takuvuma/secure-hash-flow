@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      transfers: {
+        Row: {
+          created_at: string
+          expiry_date: string | null
+          file_hash: string
+          file_name: string
+          file_path: string
+          file_size: number
+          id: string
+          message: string | null
+          recipient_email: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expiry_date?: string | null
+          file_hash: string
+          file_name: string
+          file_path: string
+          file_size: number
+          id?: string
+          message?: string | null
+          recipient_email: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expiry_date?: string | null
+          file_hash?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          id?: string
+          message?: string | null
+          recipient_email?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
