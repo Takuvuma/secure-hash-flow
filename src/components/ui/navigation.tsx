@@ -39,6 +39,7 @@ const Navigation = ({ className }: NavigationProps) => {
         { label: "Volume Discounts", href: "/pricing#volume" }
       ]
     },
+    { label: "About System", href: "/about-system" },
     { label: "Company", href: "/company" },
     { label: "Contact", href: "/contact" },
   ];
