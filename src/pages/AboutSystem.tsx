@@ -2,6 +2,7 @@ import { Navigation } from "@/components/ui/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { 
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, 
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -10,9 +11,10 @@ import {
 import { 
   Shield, Lock, Database, Cloud, FileCheck, GitBranch, 
   Zap, Globe, Users, TrendingUp, CheckCircle2, XCircle,
-  Clock, Server, Cpu, HardDrive
+  Clock, Server, Cpu, HardDrive, Download, FileText, Presentation
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import researcherPhoto from "@/assets/researcher-photo.jpeg";
 
 const AboutSystem = () => {
   // Data for charts
@@ -75,6 +77,45 @@ const AboutSystem = () => {
           </p>
         </div>
       </section>
+
+      {/* Researcher Profile */}
+      <div className="max-w-7xl mx-auto px-4 -mt-8 mb-12">
+        <Card className="hover-lift animate-fade-in-up">
+          <CardContent className="pt-6">
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <img 
+                src={researcherPhoto} 
+                alt="Researcher Takudzwa Vuma"
+                className="w-32 h-32 rounded-full object-cover border-4 border-primary/20"
+              />
+              <div className="flex-1 text-center md:text-left">
+                <h3 className="text-2xl font-bold mb-2">Takudzwa Vuma</h3>
+                <div className="space-y-1 text-muted-foreground">
+                  <p className="text-lg">Computer Information Systems Major</p>
+                  <p>Cyber Security and Cloud Security in Identity Access Management</p>
+                  <p>Junior at Talladega College</p>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-4 justify-center md:justify-start">
+                  <Badge variant="outline">Cybersecurity</Badge>
+                  <Badge variant="outline">Cloud Security</Badge>
+                  <Badge variant="outline">IAM</Badge>
+                  <Badge variant="outline">Blockchain</Badge>
+                </div>
+              </div>
+              <div className="flex flex-col gap-3">
+                <Button variant="outline" className="gap-2">
+                  <Download className="h-4 w-4" />
+                  Download PDF
+                </Button>
+                <Button variant="outline" className="gap-2">
+                  <Presentation className="h-4 w-4" />
+                  Download PowerPoint
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="max-w-7xl mx-auto px-4 py-12 space-y-16">
         {/* Abstract */}
@@ -301,12 +342,60 @@ const AboutSystem = () => {
         <section>
           <h2 className="text-4xl font-bold mb-8">Results & Analysis</h2>
           
+          {/* Detailed Analysis Introduction */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Understanding Our Findings</CardTitle>
+            </CardHeader>
+            <CardContent className="prose prose-slate max-w-none">
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                To help everyone understand our research results, let's break down what we discovered in simple terms. 
+                Think of this system like a super-secure digital envelope that not only locks your files but also creates 
+                a permanent record that can't be tampered with - similar to how a notary stamp proves a document is authentic.
+              </p>
+              <h3 className="text-xl font-semibold mb-3">What We Tested</h3>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                We ran comprehensive tests comparing our Hash Transfer system against traditional methods like email attachments, 
+                FTP servers, and standard cloud storage services like Dropbox. We measured three main things:
+              </p>
+              <ul className="space-y-2 text-muted-foreground mb-4">
+                <li>
+                  <strong>Security:</strong> How well does it protect your files from hackers and unauthorized access? 
+                  Our system scored 98 out of 100, while email scored only 40 out of 100.
+                </li>
+                <li>
+                  <strong>Speed:</strong> How fast can you send files? We scored 90 out of 100, nearly as fast as traditional 
+                  methods but with much better security.
+                </li>
+                <li>
+                  <strong>Reliability:</strong> Will your file arrive safely every time? We achieved 95 out of 100, meaning 
+                  your files get delivered correctly 95% of the time without errors.
+                </li>
+              </ul>
+              <h3 className="text-xl font-semibold mb-3">Real-World Impact</h3>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                Over six months of testing with real users, we saw some impressive results. We started with just 120 users 
+                in January, but by June, we had grown to 1,250 active users - that's over 10 times growth! These users 
+                sent more than 6,100 files in June alone. More importantly, not a single file was hacked, lost, or 
+                tampered with during this entire period.
+              </p>
+              <h3 className="text-xl font-semibold mb-3">Why This Matters</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                In today's world, data breaches cost companies millions of dollars and can expose sensitive personal 
+                information. Our system provides peace of mind by ensuring that when you send a file, it arrives exactly 
+                as you sent it, without anyone else being able to read or modify it along the way. It's like having a 
+                personal armed guard escort your package directly to the recipient, with video proof of the entire journey.
+              </p>
+            </CardContent>
+          </Card>
+          
           {/* User Adoption Growth */}
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>User Adoption & Transfer Volume</CardTitle>
               <CardDescription>
-                6-month growth trajectory showing exponential adoption
+                6-month growth trajectory showing exponential adoption - This chart shows how many people 
+                started using our system and how many files they sent over time
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -353,12 +442,49 @@ const AboutSystem = () => {
             </CardContent>
           </Card>
 
+          {/* Detailed Speed Analysis */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Speed Analysis Explained</CardTitle>
+            </CardHeader>
+            <CardContent className="prose prose-slate max-w-none">
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                One concern many people have is: "Will all this security make my file transfers slow?" 
+                The answer is no! Let's look at how fast our system works compared to traditional methods.
+              </p>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                We tested files of different sizes - from small documents (1MB) to large video files (1GB). 
+                The graph below shows processing time in milliseconds (1,000 milliseconds = 1 second). 
+                Here's what we found:
+              </p>
+              <ul className="space-y-2 text-muted-foreground mb-4">
+                <li>
+                  <strong>Small files (1MB):</strong> Hash Transfer processes them in just 180 milliseconds 
+                  (less than a quarter second), while traditional methods take 250 milliseconds.
+                </li>
+                <li>
+                  <strong>Medium files (10MB):</strong> We complete processing in 420 milliseconds, compared 
+                  to 890 milliseconds for traditional methods - that's more than twice as fast!
+                </li>
+                <li>
+                  <strong>Large files (1GB):</strong> Even with huge files, we process them in 7.2 seconds 
+                  versus 12.5 seconds for traditional methods. That's 5 seconds faster while providing much 
+                  better security.
+                </li>
+              </ul>
+              <p className="text-muted-foreground leading-relaxed">
+                This means you get bank-level security without sacrificing speed. In fact, in most cases, 
+                you'll experience faster transfers than with traditional unsecured methods!
+              </p>
+            </CardContent>
+          </Card>
+
           {/* Encryption Performance */}
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Encryption Performance Analysis</CardTitle>
+              <CardTitle>Encryption Performance Comparison</CardTitle>
               <CardDescription>
-                Processing time comparison (milliseconds) across file sizes
+                Processing time in milliseconds - lower is better (faster processing)
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -393,12 +519,63 @@ const AboutSystem = () => {
             </CardContent>
           </Card>
 
+          {/* Security Investment Breakdown */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Where We Focus Our Security Efforts</CardTitle>
+            </CardHeader>
+            <CardContent className="prose prose-slate max-w-none">
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                Building a secure system requires different components working together. Think of it like building 
+                a house - you need a strong foundation, walls, locks, and an alarm system. Here's how we distribute 
+                our security resources:
+              </p>
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <h4 className="font-semibold mb-2">🔐 Encryption (30%)</h4>
+                  <p className="text-sm text-muted-foreground">
+                    This is like putting your file in an unbreakable safe. We use military-grade encryption 
+                    that would take billions of years to crack with today's computers.
+                  </p>
+                </div>
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <h4 className="font-semibold mb-2">⛓️ Blockchain (25%)</h4>
+                  <p className="text-sm text-muted-foreground">
+                    This creates a permanent, tamper-proof record of every file transfer - like a digital 
+                    fingerprint that can't be forged.
+                  </p>
+                </div>
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <h4 className="font-semibold mb-2">💾 Storage (20%)</h4>
+                  <p className="text-sm text-muted-foreground">
+                    We distribute your encrypted files across multiple secure servers, so even if one fails, 
+                    your files remain safe and accessible.
+                  </p>
+                </div>
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <h4 className="font-semibold mb-2">🔑 Authentication (15%)</h4>
+                  <p className="text-sm text-muted-foreground">
+                    This ensures only authorized people can access files - like a sophisticated ID check 
+                    at a high-security building.
+                  </p>
+                </div>
+                <div className="p-4 bg-muted/50 rounded-lg col-span-2">
+                  <h4 className="font-semibold mb-2">📊 Monitoring (10%)</h4>
+                  <p className="text-sm text-muted-foreground">
+                    We constantly watch for suspicious activity, like security cameras and guards monitoring 
+                    a bank. This helps us detect and prevent threats before they become problems.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Feature Distribution */}
           <Card>
             <CardHeader>
-              <CardTitle>System Resource Distribution</CardTitle>
+              <CardTitle>System Resource Distribution Chart</CardTitle>
               <CardDescription>
-                Computational resource allocation across security features
+                Visual breakdown of how we allocate computing power across different security features
               </CardDescription>
             </CardHeader>
             <CardContent>
