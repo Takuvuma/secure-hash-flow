@@ -44,16 +44,55 @@ const Dashboard = () => {
   const [expiryDate, setExpiryDate] = useState("");
   const [message, setMessage] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [sentTransfers, setSentTransfers] = useState<any[]>([]);
+  const [receivedTransfers, setReceivedTransfers] = useState<any[]>([]);
+  const [loadingTransfers, setLoadingTransfers] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Get current user email
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    // Get current user email and fetch transfers
+    const initDashboard = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       if (user?.email) {
         setUserEmail(user.email);
+        await fetchTransfers(user.email, user.id);
       }
-    });
+      setLoadingTransfers(false);
+    };
+    
+    initDashboard();
   }, []);
+
+  const fetchTransfers = async (email: string, userId: string) => {
+    try {
+      // Fetch sent transfers
+      const { data: sent, error: sentError } = await supabase
+        .from('transfers')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (sentError) throw sentError;
+      setSentTransfers(sent || []);
+
+      // Fetch received transfers
+      const { data: received, error: receivedError } = await supabase
+        .from('transfers')
+        .select('*')
+        .eq('recipient_email', email)
+        .order('created_at', { ascending: false });
+
+      if (receivedError) throw receivedError;
+      setReceivedTransfers(received || []);
+    } catch (error: any) {
+      console.error('Error fetching transfers:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load transfers",
+        variant: "destructive"
+      });
+    }
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -339,6 +378,11 @@ const Dashboard = () => {
       setExpiryDate("");
       setMessage("");
       setUploadProgress(0);
+      
+      // Refresh transfers
+      if (user.id && userEmail) {
+        await fetchTransfers(userEmail, user.id);
+      }
 
     } catch (error: any) {
       console.error("Transfer error:", error);
@@ -370,6 +414,38 @@ const Dashboard = () => {
         return <Shield className="h-4 w-4 text-primary" />;
       default:
         return <AlertCircle className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
+
+  const handleDownloadFile = async (filePath: string, fileName: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('secure-transfers')
+        .download(filePath);
+
+      if (error) throw error;
+
+      // Create download link
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Success",
+        description: "File downloaded and decrypted successfully"
+      });
+    } catch (error: any) {
+      console.error('Download error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to download file",
+        variant: "destructive"
+      });
     }
   };
 
@@ -420,9 +496,10 @@ const Dashboard = () => {
             {/* Transfer Form */}
             <div className="lg:col-span-2">
               <Tabs defaultValue="upload" className="space-y-6">
-                <TabsList className="glass">
+                <TabsList className="glass grid w-full grid-cols-3">
                   <TabsTrigger value="upload">New Transfer</TabsTrigger>
-                  <TabsTrigger value="history">Transfer History</TabsTrigger>
+                  <TabsTrigger value="history">Sent History</TabsTrigger>
+                  <TabsTrigger value="received">Received</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="upload" className="space-y-6">
@@ -579,50 +656,128 @@ const Dashboard = () => {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <FileText className="h-5 w-5 text-primary" />
-                        Transfer History
+                        Sent Transfer History
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-4">
-                        {recentTransfers.map((transfer, index) => (
-                          <div key={index} className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/20 transition-colors">
-                            <div className="flex items-center gap-4">
-                              <div className="p-2 rounded-lg bg-primary/10">
-                                <FileText className="h-4 w-4 text-primary" />
-                              </div>
-                              <div>
-                                <h4 className="font-medium">{transfer.fileName}</h4>
-                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                  <span>To: {transfer.recipient}</span>
-                                  <span>{transfer.size}</span>
-                                  <span>{transfer.date}</span>
+                      {loadingTransfers ? (
+                        <div className="flex justify-center py-8">
+                          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                      ) : sentTransfers.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No sent transfers yet
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {sentTransfers.map((transfer) => (
+                            <div key={transfer.id} className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/20 transition-colors">
+                              <div className="flex items-center gap-4">
+                                <div className="p-2 rounded-lg bg-primary/10">
+                                  <FileText className="h-4 w-4 text-primary" />
+                                </div>
+                                <div>
+                                  <h4 className="font-medium">{transfer.file_name}</h4>
+                                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                    <span>To: {transfer.recipient_email}</span>
+                                    <span>{(transfer.file_size / (1024 * 1024)).toFixed(2)} MB</span>
+                                    <span>{new Date(transfer.created_at).toLocaleDateString()}</span>
+                                  </div>
                                 </div>
                               </div>
+                              
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2">
+                                  {getStatusIcon(transfer.status)}
+                                  <Badge variant="outline" className="capitalize">
+                                    {transfer.status}
+                                  </Badge>
+                                </div>
+                                
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  onClick={() => copyToClipboard(transfer.file_hash)}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
-                            
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center gap-2">
-                                {getStatusIcon(transfer.status)}
-                                <Badge variant="outline" className="capitalize">
-                                  {transfer.status}
-                                </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="received">
+                  <Card className="glass">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Download className="h-5 w-5 text-primary" />
+                        Received Transfers
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {loadingTransfers ? (
+                        <div className="flex justify-center py-8">
+                          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                      ) : receivedTransfers.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No received transfers yet
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {receivedTransfers.map((transfer) => (
+                            <div key={transfer.id} className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/20 transition-colors">
+                              <div className="flex items-center gap-4">
+                                <div className="p-2 rounded-lg bg-primary/10">
+                                  <FileText className="h-4 w-4 text-primary" />
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h4 className="font-medium">{transfer.file_name}</h4>
+                                    <Lock className="h-4 w-4 text-primary" />
+                                  </div>
+                                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                    <span>{(transfer.file_size / (1024 * 1024)).toFixed(2)} MB</span>
+                                    <span>•</span>
+                                    <span>{new Date(transfer.created_at).toLocaleDateString()}</span>
+                                  </div>
+                                  {transfer.message && (
+                                    <p className="text-xs text-muted-foreground italic mt-1">
+                                      "{transfer.message}"
+                                    </p>
+                                  )}
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    Hash: {transfer.file_hash}
+                                  </p>
+                                </div>
                               </div>
                               
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                onClick={() => copyToClipboard(transfer.hash)}
-                              >
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                              
-                              <Button size="sm" variant="ghost">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
+                              <div className="flex items-center gap-3">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => handleDownloadFile(transfer.file_path, transfer.file_name)}
+                                >
+                                  <Download className="h-4 w-4 mr-2" />
+                                  Download & Decrypt
+                                </Button>
+                                
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  onClick={() => copyToClipboard(transfer.file_hash)}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>

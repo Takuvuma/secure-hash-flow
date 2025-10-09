@@ -102,7 +102,7 @@ const Navigation = ({ className }: NavigationProps) => {
               <Link to="/dashboard">Dashboard</Link>
             </Button>
             <Button size="sm" className="glow" asChild>
-              <Link to="/dashboard">Start Transfer</Link>
+              <Link to="/auth">Login / Signup</Link>
             </Button>
           </div>
 
@@ -148,8 +148,8 @@ const Navigation = ({ className }: NavigationProps) => {
                 </Link>
               </Button>
               <Button size="sm" className="w-full glow" asChild>
-                <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
-                  Start Transfer
+                <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
+                  Login / Signup
                 </Link>
               </Button>
             </div>
