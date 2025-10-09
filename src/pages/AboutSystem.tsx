@@ -15,8 +15,30 @@ import {
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import researcherPhoto from "@/assets/researcher-photo.jpeg";
+import { generatePDF, generatePowerPoint } from "@/utils/documentGenerators";
+import { toast } from "sonner";
 
 const AboutSystem = () => {
+  const handleDownloadPDF = () => {
+    try {
+      generatePDF();
+      toast.success("PDF downloaded successfully!");
+    } catch (error) {
+      toast.error("Failed to generate PDF. Please try again.");
+      console.error("PDF generation error:", error);
+    }
+  };
+
+  const handleDownloadPowerPoint = () => {
+    try {
+      generatePowerPoint();
+      toast.success("PowerPoint presentation downloaded successfully!");
+    } catch (error) {
+      toast.error("Failed to generate PowerPoint. Please try again.");
+      console.error("PowerPoint generation error:", error);
+    }
+  };
+
   // Data for charts
   const securityComparisonData = [
     { name: 'Traditional FTP', security: 30, speed: 85, reliability: 60 },
@@ -104,11 +126,11 @@ const AboutSystem = () => {
                 </div>
               </div>
               <div className="flex flex-col gap-3">
-                <Button variant="outline" className="gap-2">
+                <Button variant="outline" className="gap-2" onClick={handleDownloadPDF}>
                   <Download className="h-4 w-4" />
                   Download PDF
                 </Button>
-                <Button variant="outline" className="gap-2">
+                <Button variant="outline" className="gap-2" onClick={handleDownloadPowerPoint}>
                   <Presentation className="h-4 w-4" />
                   Download PowerPoint
                 </Button>
