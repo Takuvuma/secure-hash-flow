@@ -86,7 +86,8 @@ const AboutSystem = () => {
               <img 
                 src={researcherPhoto} 
                 alt="Researcher Takudzwa Vuma"
-                className="w-32 h-32 rounded-full object-cover border-4 border-primary/20"
+                className="w-32 h-32 rounded-full object-cover object-center border-4 border-primary/20"
+                style={{ objectPosition: 'center 30%' }}
               />
               <div className="flex-1 text-center md:text-left">
                 <h3 className="text-2xl font-bold mb-2">Takudzwa Vuma</h3>
