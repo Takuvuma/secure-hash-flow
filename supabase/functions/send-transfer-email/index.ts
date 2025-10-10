@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -7,6 +8,16 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Validation schema for email inputs
+const emailSchema = z.string().email().max(255);
+const transferEmailSchema = z.object({
+  recipientEmail: emailSchema,
+  fileName: z.string().min(1).max(255),
+  fileSize: z.string().min(1).max(50),
+  message: z.string().max(1000).optional(),
+  senderEmail: emailSchema,
+});
 
 interface TransferEmailRequest {
   recipientEmail: string;
@@ -23,7 +34,22 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { recipientEmail, fileName, fileSize, message, senderEmail }: TransferEmailRequest = await req.json();
+    const requestData = await req.json();
+    
+    // Validate input data
+    const validationResult = transferEmailSchema.safeParse(requestData);
+    if (!validationResult.success) {
+      console.error("Validation error:", validationResult.error);
+      return new Response(
+        JSON.stringify({ error: "Invalid input data", details: validationResult.error.issues }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    const { recipientEmail, fileName, fileSize, message, senderEmail }: TransferEmailRequest = validationResult.data;
 
     console.log("Sending transfer notification to:", recipientEmail);
 
