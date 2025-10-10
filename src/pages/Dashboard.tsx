@@ -357,7 +357,8 @@ const Dashboard = () => {
           fileName: selectedFile.name,
           fileSize: `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
           message: validated.message,
-          senderEmail: userEmail
+          senderEmail: userEmail,
+          appUrl: window.location.origin
         }
       });
 

@@ -17,6 +17,7 @@ const transferEmailSchema = z.object({
   fileSize: z.string().min(1).max(50),
   message: z.string().max(1000).optional(),
   senderEmail: emailSchema,
+  appUrl: z.string().url().optional(),
 });
 
 interface TransferEmailRequest {
@@ -25,6 +26,7 @@ interface TransferEmailRequest {
   fileSize: string;
   message?: string;
   senderEmail: string;
+  appUrl?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -49,9 +51,11 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { recipientEmail, fileName, fileSize, message, senderEmail }: TransferEmailRequest = validationResult.data;
+    const { recipientEmail, fileName, fileSize, message, senderEmail, appUrl }: TransferEmailRequest = validationResult.data;
 
     console.log("Sending transfer notification to:", recipientEmail);
+
+    const downloadUrl = appUrl ? `${appUrl}/dashboard` : 'https://your-app-url.com/dashboard';
 
     const emailResponse = await resend.emails.send({
       from: "SecureTransfer <onboarding@resend.dev>",
@@ -69,7 +73,13 @@ const handler = async (req: Request): Promise<Response> => {
             ${message ? `<p><strong>Message:</strong> ${message}</p>` : ''}
           </div>
           
-          <p style="color: #6b7280;">This file has been securely encrypted and uploaded. The sender has been notified of this transfer.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${downloadUrl}" style="display: inline-block; background: #2563eb; color: white; padding: 12px 32px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+              Access Your File
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px;">This file has been securely encrypted and uploaded. To download, click the button above to log in to your dashboard and access your received files.</p>
           
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
             <p style="color: #9ca3af; font-size: 12px;">
