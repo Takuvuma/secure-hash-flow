@@ -418,16 +418,22 @@ const Dashboard = () => {
     }
   };
 
-  const handleDownloadFile = async (filePath: string, fileName: string) => {
+  const handleDownloadFile = async (transferId: string, filePath: string, fileName: string) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('secure-transfers')
-        .download(filePath);
+      // Get signed URL from edge function
+      const { data, error } = await supabase.functions.invoke('get-file-download-url', {
+        body: { transferId }
+      });
 
       if (error) throw error;
+      if (!data?.signedUrl) throw new Error('No download URL received');
 
-      // Create download link
-      const url = URL.createObjectURL(data);
+      // Download file using signed URL
+      const response = await fetch(data.signedUrl);
+      if (!response.ok) throw new Error('Download failed');
+      
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = fileName;
@@ -438,13 +444,13 @@ const Dashboard = () => {
 
       toast({
         title: "Success",
-        description: "File downloaded and decrypted successfully"
+        description: "File downloaded successfully"
       });
     } catch (error: any) {
       console.error('Download error:', error);
       toast({
         title: "Error",
-        description: "Failed to download file",
+        description: error.message || "Failed to download file",
         variant: "destructive"
       });
     }
@@ -761,7 +767,7 @@ const Dashboard = () => {
                                 <Button 
                                   size="sm" 
                                   variant="outline"
-                                  onClick={() => handleDownloadFile(transfer.file_path, transfer.file_name)}
+                                  onClick={() => handleDownloadFile(transfer.id, transfer.file_path, transfer.file_name)}
                                 >
                                   <Download className="h-4 w-4 mr-2" />
                                   Download & Decrypt
