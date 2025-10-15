@@ -334,7 +334,7 @@ const Dashboard = () => {
       if (uploadError) throw uploadError;
 
       // Save transfer record to database
-      const { error: dbError } = await supabase
+      const { data: transferData, error: dbError } = await supabase
         .from('transfers')
         .insert({
           user_id: user.id,
@@ -346,7 +346,9 @@ const Dashboard = () => {
           message: validated.message,
           expiry_date: expiryDate || null,
           status: 'pending'
-        });
+        })
+        .select('access_token')
+        .single();
 
       if (dbError) throw dbError;
 
@@ -358,7 +360,8 @@ const Dashboard = () => {
           fileSize: `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
           message: validated.message,
           senderEmail: userEmail,
-          appUrl: window.location.origin
+          appUrl: window.location.origin,
+          accessToken: transferData?.access_token
         }
       });
 

@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       transfers: {
         Row: {
+          access_token: string | null
           created_at: string
           expiry_date: string | null
           file_hash: string
@@ -30,6 +31,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          access_token?: string | null
           created_at?: string
           expiry_date?: string | null
           file_hash: string
@@ -44,6 +46,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          access_token?: string | null
           created_at?: string
           expiry_date?: string | null
           file_hash?: string
